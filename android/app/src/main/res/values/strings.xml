@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nightlight</string>
+    <string name="title_activity_main">Nightlight</string>
+    <string name="package_name">com.sauso.nightlight</string>
+    <string name="custom_url_scheme">com.sauso.nightlight</string>
+</resources>

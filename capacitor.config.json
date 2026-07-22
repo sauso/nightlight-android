@@ -1,0 +1,12 @@
+{
+  "appId": "com.sauso.nightlight",
+  "appName": "Nightlight",
+  "webDir": "www",
+  "server": {
+    "url": "https://nightlight.nachonas.net",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
