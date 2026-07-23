@@ -3,7 +3,7 @@
   "appName": "Nightlight",
   "webDir": "www",
   "server": {
-    "url": "https://nightlight.nachonas.net",
+    "errorPath": "error.html",
     "cleartext": false
   },
   "android": {
