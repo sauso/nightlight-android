@@ -123,13 +123,15 @@ class AudioService : Service() {
         }
         if (wifiLock == null) {
             val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
-            } else {
-                @Suppress("DEPRECATION")
-                WifiManager.WIFI_MODE_FULL_HIGH_PERF
-            }
-            wifiLock = wm.createWifiLock(mode, "Nightlight::Wifi").apply {
+            // Deliberately NOT WIFI_MODE_FULL_LOW_LATENCY: that mode is documented to
+            // only be active while the acquiring app is foregrounded with the screen
+            // on - i.e. it silently does nothing in exactly the situation this
+            // service exists for (screen off, listening in the background), letting
+            // wifi power-saving starve the WebRTC connection until it dropped.
+            // HIGH_PERF is deprecated but remains the only mode that holds wifi
+            // awake from the background.
+            @Suppress("DEPRECATION")
+            wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "Nightlight::Wifi").apply {
                 setReferenceCounted(false)
                 acquire()
             }

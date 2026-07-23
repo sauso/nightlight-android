@@ -10,6 +10,20 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-23
+
+### Fixed
+- Background listening dying after ~15-30 minutes with the screen off (observed as
+  both camera streams dropping simultaneously with the server perfectly healthy):
+  - The wifi lock used a mode (`WIFI_MODE_FULL_LOW_LATENCY`) that Android only
+    honors while the app is foregrounded with the screen on — silently useless for
+    background listening. Replaced with the mode that actually holds wifi awake
+    from the background.
+  - Doze ignores wake locks and cuts network for apps not exempt from battery
+    optimization. The app now asks for the exemption (system consent dialog) the
+    first time background listening starts; declining is respected and never
+    re-prompted.
+
 ## [0.1.0] - 2026-07-23
 
 ### Added
@@ -30,5 +44,6 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 - Updating from a pre-0.1.0 install shows the setup screen once (the previously
   hardcoded address is not migrated).
 
-[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/sauso/nightlight-android/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sauso/nightlight-android/releases/tag/v0.1.0

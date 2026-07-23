@@ -1,8 +1,12 @@
 package com.sauso.nightlight
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -81,7 +85,33 @@ class BackgroundAudioPlugin : Plugin() {
             putExtra(AudioService.EXTRA_LABEL, label)
         }
         ContextCompat.startForegroundService(context, intent)
+        maybeRequestBatteryExemption()
         call.resolve()
+    }
+
+    // Doze (screen off, device still for ~15-30 min) ignores wake locks and cuts
+    // network for apps that aren't exempt from battery optimization - which is
+    // precisely how an active background-listening session dies half an hour into
+    // the night despite the foreground service. Exempt apps keep both. Asked at
+    // most once via the system's own consent dialog; declining is respected and
+    // never re-prompted (it can still be granted later in Settings > Apps >
+    // Nightlight > Battery > Unrestricted).
+    private fun maybeRequestBatteryExemption() {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (pm.isIgnoringBatteryOptimizations(context.packageName)) return
+        val prefs = context.getSharedPreferences("nightlight_battery", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("exemption_asked", false)) return
+        prefs.edit().putBoolean("exemption_asked", true).apply()
+        try {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:${context.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // Some OEM builds don't ship this settings screen - background listening
+            // still works, just without the Doze exemption.
+        }
     }
 
     @PluginMethod
