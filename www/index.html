@@ -30,14 +30,23 @@
     padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
   .card { width: 100%; max-width: 380px; text-align: center; }
-  .moon { font-size: 56px; line-height: 1; margin-bottom: 14px; }
+  /* Same treatment as the web app's login screen (.auth-icon / .auth-card in
+     frontend/src/index.css) so first-run looks like the same product. */
+  .app-icon {
+    display: block;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 18px;
+    border-radius: 22px;
+    box-shadow: 0 8px 30px rgba(245, 217, 168, 0.18);
+  }
   h1 {
     font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
     font-weight: 600;
-    font-size: 30px;
+    font-size: 28px;
     margin: 0 0 6px;
   }
-  .tagline { color: var(--text-secondary); font-size: 14px; margin: 0 0 30px; }
+  .tagline { color: var(--text-secondary); font-size: 13px; margin: 0 0 26px; }
   label {
     display: block;
     text-align: left;
@@ -51,8 +60,8 @@
     border: 1px solid var(--border);
     color: var(--text-primary);
     border-radius: 10px;
-    padding: 13px 12px;
-    font-size: 16px;
+    padding: 11px 12px;
+    font-size: 15px;
   }
   input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
   .hint { text-align: left; font-size: 12px; color: var(--text-secondary); margin: 8px 0 22px; }
@@ -60,8 +69,8 @@
     width: 100%;
     border: none;
     border-radius: 10px;
-    padding: 14px 18px;
-    font-size: 15px;
+    padding: 12px 18px;
+    font-size: 14px;
     font-weight: 600;
     font-family: inherit;
     background: var(--accent);
@@ -84,9 +93,9 @@
 </head>
 <body>
   <div class="card">
-    <div class="moon">🌙</div>
+    <img src="icon-192.png" alt="" class="app-icon" />
     <h1>Nightlight</h1>
-    <p class="tagline">Connect to your Nightlight server to get started.</p>
+    <p class="tagline">Connect to your server to watch over the nursery.</p>
 
     <label for="server">Server address</label>
     <input id="server" type="url" inputmode="url" autocapitalize="none" autocorrect="off"

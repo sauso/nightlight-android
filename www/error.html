@@ -24,7 +24,14 @@
     padding: 24px;
   }
   .card { width: 100%; max-width: 380px; text-align: center; }
-  .moon { font-size: 56px; line-height: 1; margin-bottom: 14px; }
+  .app-icon {
+    display: block;
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 18px;
+    border-radius: 22px;
+    box-shadow: 0 8px 30px rgba(245, 217, 168, 0.18);
+  }
   h1 {
     font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
     font-weight: 600;
@@ -53,7 +60,7 @@
 </head>
 <body>
   <div class="card">
-    <div class="moon">🌙</div>
+    <img src="icon-192.png" alt="" class="app-icon" />
     <h1>Can't reach your server</h1>
     <p>Nightlight couldn't connect to your server. It may be offline, or this device may
        not have a connection to it right now.</p>

@@ -10,6 +10,12 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-23
+
+### Changed
+- Setup and error screens now use the real app icon and the same typography as
+  the web app's login screen, instead of a moon emoji.
+
 ## [0.1.2] - 2026-07-23
 
 ### Fixed
@@ -52,7 +58,8 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 - Updating from a pre-0.1.0 install shows the setup screen once (the previously
   hardcoded address is not migrated).
 
-[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/sauso/nightlight-android/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/sauso/nightlight-android/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/sauso/nightlight-android/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sauso/nightlight-android/releases/tag/v0.1.0
