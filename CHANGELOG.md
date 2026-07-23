@@ -10,6 +10,14 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-23
+
+### Fixed
+- First-run setup screen rendering as a wall of garbled text: the page was
+  accidentally saved UTF-16 encoded (inherited from the placeholder file it
+  replaced), which the WebView read as UTF-8 and displayed as raw bytes instead
+  of parsing. Re-encoded as UTF-8.
+
 ## [0.1.1] - 2026-07-23
 
 ### Fixed
@@ -44,6 +52,7 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 - Updating from a pre-0.1.0 install shows the setup screen once (the previously
   hardcoded address is not migrated).
 
-[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/sauso/nightlight-android/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/sauso/nightlight-android/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sauso/nightlight-android/releases/tag/v0.1.0
