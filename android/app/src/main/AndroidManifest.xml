@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- usesCleartextTraffic: self-hosted servers are commonly exposed plain-http on
+         the LAN (e.g. http://192.168.1.50:4000) with no reverse proxy in front - the
+         server address is user-chosen at runtime, so per-domain network security
+         config can't be pre-declared. The setup flow still prefers https first. -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
 
         <activity

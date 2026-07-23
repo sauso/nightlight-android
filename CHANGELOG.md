@@ -10,6 +10,18 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-23
+
+### Added
+- Plain-http and IP-address servers are now supported (e.g. `192.168.1.50:4000`),
+  for installs exposed directly on the LAN without a reverse proxy/SSL in front. A
+  bare address tries https first and falls back to http; an explicit scheme is
+  respected as typed.
+
+### Changed
+- Cleartext traffic re-enabled at the Android level to allow the above. The setup
+  flow still prefers https whenever the server answers on it.
+
 ## [0.1.3] - 2026-07-23
 
 ### Changed
@@ -58,7 +70,8 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 - Updating from a pre-0.1.0 install shows the setup screen once (the previously
   hardcoded address is not migrated).
 
-[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/sauso/nightlight-android/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/sauso/nightlight-android/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/sauso/nightlight-android/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/sauso/nightlight-android/compare/v0.1.0...v0.1.1

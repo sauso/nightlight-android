@@ -48,6 +48,12 @@ class ServerConfigPlugin : Plugin() {
     // unauthenticated /api/health endpoint) before persisting anything - a typo'd
     // address that saved anyway would boot the app onto a dead URL every launch,
     // with only the error page as a way back.
+    //
+    // Scheme handling: an explicit https:// or http:// is respected as typed. A bare
+    // address (domain, IP, IP:port) tries https first, then falls back to http -
+    // self-hosted servers are commonly exposed plain-http on the LAN with no reverse
+    // proxy in front (e.g. 192.168.1.50:4000), and the wrong-scheme attempt fails
+    // fast (TLS handshake against a plaintext port doesn't sit out the timeout).
     @PluginMethod
     fun save(call: PluginCall) {
         val raw = call.getString("url")?.trim().orEmpty()
@@ -55,42 +61,45 @@ class ServerConfigPlugin : Plugin() {
             call.reject("Enter your server address")
             return
         }
-        var url = if (raw.contains("://")) raw else "https://$raw"
-        url = url.trimEnd('/')
-        if (!url.startsWith("https://")) {
-            // The WebView is configured for HTTPS only (no cleartext) - accepting an
-            // http:// address here would validate fine natively and then strand the
-            // app on a page the WebView refuses to load.
-            call.reject("The address must use HTTPS (https://...)")
-            return
+        val bare = raw.trimEnd('/')
+        val candidates = if (bare.contains("://")) {
+            if (!bare.startsWith("https://") && !bare.startsWith("http://")) {
+                call.reject("The address must start with https:// or http://")
+                return
+            }
+            listOf(bare)
+        } else {
+            listOf("https://$bare", "http://$bare")
         }
 
         // Plain thread rather than blocking a Capacitor thread: HttpURLConnection
         // can sit the full timeout on an unreachable host.
         Thread {
-            try {
-                val conn = URL("$url/api/health").openConnection() as HttpURLConnection
-                conn.connectTimeout = 7000
-                conn.readTimeout = 7000
-                conn.requestMethod = "GET"
-                val code = conn.responseCode
-                val body = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
-                if (code == 200 && body.contains("\"ok\"")) {
-                    context
-                        .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                        .edit()
-                        .putString(KEY_URL, url)
-                        .apply()
-                    val ret = JSObject()
-                    ret.put("url", url)
-                    call.resolve(ret)
-                } else {
-                    call.reject("That address responded, but it doesn't look like a Nightlight server")
+            for (url in candidates) {
+                try {
+                    val conn = URL("$url/api/health").openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    conn.requestMethod = "GET"
+                    val code = conn.responseCode
+                    val body = conn.inputStream.bufferedReader().use { it.readText() }
+                    conn.disconnect()
+                    if (code == 200 && body.contains("\"ok\"")) {
+                        context
+                            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                            .edit()
+                            .putString(KEY_URL, url)
+                            .apply()
+                        val ret = JSObject()
+                        ret.put("url", url)
+                        call.resolve(ret)
+                        return@Thread
+                    }
+                } catch (e: Exception) {
+                    // Fall through to the next candidate scheme, if any.
                 }
-            } catch (e: Exception) {
-                call.reject("Couldn't reach a Nightlight server at $url")
             }
+            call.reject("Couldn't reach a Nightlight server at that address")
         }.start()
     }
 

@@ -4,7 +4,7 @@
   "webDir": "www",
   "server": {
     "errorPath": "error.html",
-    "cleartext": false
+    "cleartext": true
   },
   "android": {
     "allowMixedContent": false
