@@ -4,7 +4,7 @@
   "webDir": "www",
   "server": {
     "url": "https://nightlight.nachonas.net",
-    "cleartext": true
+    "cleartext": false
   },
   "android": {
     "allowMixedContent": false
