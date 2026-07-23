@@ -10,6 +10,14 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-23
+
+### Added
+- The app now remembers every server it has successfully connected to. The setup
+  screen lists them as one-tap choices (with the option to forget one), and
+  "Change server" returns to that list rather than a blank slate — switching
+  between servers no longer means retyping addresses.
+
 ## [0.2.0] - 2026-07-23
 
 ### Added
@@ -70,7 +78,8 @@ only as git history — 0.1.0 is the first tracked release, not the first releas
 - Updating from a pre-0.1.0 install shows the setup screen once (the previously
   hardcoded address is not migrated).
 
-[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/sauso/nightlight-android/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/sauso/nightlight-android/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/sauso/nightlight-android/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/sauso/nightlight-android/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/sauso/nightlight-android/compare/v0.1.1...v0.1.2

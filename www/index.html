@@ -89,6 +89,48 @@
     margin-top: 16px;
     text-align: left;
   }
+  .saved { display: none; margin-top: 28px; text-align: left; }
+  .saved-title {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 0 0 8px;
+  }
+  .saved-row {
+    display: flex;
+    align-items: center;
+    background: rgba(36, 44, 82, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .saved-row .addr {
+    flex: 1;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .saved-row .forget {
+    width: auto;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 15px;
+    padding: 12px 14px;
+    margin: 0;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -104,21 +146,30 @@
 
     <button id="connect">Connect</button>
     <div id="error" class="error"></div>
+
+    <div id="saved" class="saved">
+      <p class="saved-title">Saved servers</p>
+      <div id="saved-list"></div>
+    </div>
   </div>
 
 <script>
   const input = document.getElementById('server');
   const button = document.getElementById('connect');
   const errorBox = document.getElementById('error');
+  const savedSection = document.getElementById('saved');
+  const savedList = document.getElementById('saved-list');
+
+  const plugin = () => window.Capacitor?.Plugins?.ServerConfig;
 
   function showError(message) {
     errorBox.textContent = message;
     errorBox.style.display = 'block';
   }
 
-  async function connect() {
-    const plugin = window.Capacitor?.Plugins?.ServerConfig;
-    if (!plugin) {
+  async function connect(url) {
+    const p = plugin();
+    if (!p) {
       showError('Native bridge unavailable - try reinstalling the app.');
       return;
     }
@@ -127,10 +178,12 @@
     button.textContent = 'Connecting…';
     try {
       // save() validates the address actually hosts a Nightlight server before
-      // persisting; restart() then rebuilds the bridge pointed at it.
-      await plugin.save({ url: input.value });
+      // persisting; restart() then rebuilds the bridge pointed at it. Saved-server
+      // taps go through the same validation, so a dead saved server errors here
+      // instead of restarting into the can't-reach page.
+      await p.save({ url });
       button.textContent = 'Connected';
-      await plugin.restart();
+      await p.restart();
     } catch (err) {
       showError(err?.message || 'Could not connect to that address.');
       button.disabled = false;
@@ -138,10 +191,48 @@
     }
   }
 
-  button.addEventListener('click', connect);
+  async function renderSaved() {
+    const p = plugin();
+    if (!p) return;
+    try {
+      const { servers } = await p.list();
+      savedList.innerHTML = '';
+      if (!servers || servers.length === 0) {
+        savedSection.style.display = 'none';
+        return;
+      }
+      for (const url of servers) {
+        const row = document.createElement('div');
+        row.className = 'saved-row';
+
+        const addr = document.createElement('button');
+        addr.className = 'addr';
+        addr.textContent = url.replace(/^https?:\/\//, '');
+        addr.addEventListener('click', () => connect(url));
+
+        const forget = document.createElement('button');
+        forget.className = 'forget';
+        forget.textContent = '✕';
+        forget.setAttribute('aria-label', 'Forget ' + url);
+        forget.addEventListener('click', async () => {
+          await p.forget({ url });
+          renderSaved();
+        });
+
+        row.append(addr, forget);
+        savedList.append(row);
+      }
+      savedSection.style.display = 'block';
+    } catch {
+      savedSection.style.display = 'none';
+    }
+  }
+
+  button.addEventListener('click', () => connect(input.value));
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') connect();
+    if (e.key === 'Enter') connect(input.value);
   });
+  renderSaved();
 </script>
 </body>
 </html>

@@ -1,11 +1,13 @@
 package com.sauso.nightlight
 
 import android.content.Context
+import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import org.json.JSONArray
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -30,6 +32,10 @@ class ServerConfigPlugin : Plugin() {
     companion object {
         private const val PREFS = "nightlight_server"
         private const val KEY_URL = "server_url"
+        // Every server that has ever passed validation, most recently used first -
+        // lets the setup screen offer previous servers as one-tap choices instead
+        // of making the person retype an address they've already proven works.
+        private const val KEY_KNOWN = "known_servers"
 
         fun getSavedUrl(context: Context): String? {
             val url = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_URL, null)
@@ -37,11 +43,53 @@ class ServerConfigPlugin : Plugin() {
         }
     }
 
+    private fun prefs() = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    private fun knownServers(): MutableList<String> {
+        val list = mutableListOf<String>()
+        try {
+            val arr = JSONArray(prefs().getString(KEY_KNOWN, "[]"))
+            for (i in 0 until arr.length()) list.add(arr.getString(i))
+        } catch (e: Exception) {
+            // Corrupt prefs entry - treat as empty rather than crash.
+        }
+        return list
+    }
+
+    private fun rememberServer(url: String) {
+        val list = knownServers()
+        list.remove(url)
+        list.add(0, url)
+        prefs().edit().putString(KEY_KNOWN, JSONArray(list).toString()).apply()
+    }
+
     @PluginMethod
     fun get(call: PluginCall) {
         val ret = JSObject()
         ret.put("url", getSavedUrl(context))
         call.resolve(ret)
+    }
+
+    // Previously used servers plus which one is currently active, for the setup
+    // screen's one-tap list.
+    @PluginMethod
+    fun list(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("servers", JSArray(knownServers()))
+        ret.put("active", getSavedUrl(context))
+        call.resolve(ret)
+    }
+
+    // Drop a server from the remembered list (does not touch the active choice).
+    @PluginMethod
+    fun forget(call: PluginCall) {
+        val url = call.getString("url")
+        if (url != null) {
+            val list = knownServers()
+            list.remove(url)
+            prefs().edit().putString(KEY_KNOWN, JSONArray(list).toString()).apply()
+        }
+        call.resolve()
     }
 
     // Confirms the address actually hosts a reachable Nightlight server (its
@@ -85,11 +133,8 @@ class ServerConfigPlugin : Plugin() {
                     val body = conn.inputStream.bufferedReader().use { it.readText() }
                     conn.disconnect()
                     if (code == 200 && body.contains("\"ok\"")) {
-                        context
-                            .getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                            .edit()
-                            .putString(KEY_URL, url)
-                            .apply()
+                        prefs().edit().putString(KEY_URL, url).apply()
+                        rememberServer(url)
                         val ret = JSObject()
                         ret.put("url", url)
                         call.resolve(ret)
@@ -103,9 +148,12 @@ class ServerConfigPlugin : Plugin() {
         }.start()
     }
 
+    // Clears only the ACTIVE choice, deliberately keeping the remembered list -
+    // "Change server" should land on a screen offering your other servers, not a
+    // blank slate (use forget() to actually drop one from the list).
     @PluginMethod
     fun clear(call: PluginCall) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_URL).apply()
+        prefs().edit().remove(KEY_URL).apply()
         call.resolve()
     }
 
