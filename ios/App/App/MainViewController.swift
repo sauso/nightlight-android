@@ -13,8 +13,9 @@ import Capacitor
 class MainViewController: CAPBridgeViewController {
     override func instanceDescriptor() -> InstanceDescriptor {
         let descriptor = super.instanceDescriptor()
-        if let saved = ServerConfigStore.savedURL, let url = URL(string: saved) {
-            descriptor.serverURL = url
+        // serverURL is a String on iOS (the raw address), not a URL.
+        if let saved = ServerConfigStore.savedURL {
+            descriptor.serverURL = saved
         }
         return descriptor
     }
