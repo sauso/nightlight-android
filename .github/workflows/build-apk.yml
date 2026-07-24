@@ -62,7 +62,9 @@ jobs:
           EOF
 
       - name: Build signed release APK
-        run: cd android && ./gradlew assembleRelease --no-daemon
+        # chmod is belt-and-suspenders: the executable bit is also set in git, but this
+        # guarantees the build even if a future checkout loses it (Windows commits drop it).
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
 
       # On a tag, GITHUB_REF_NAME is like "v0.3.1" -> version "0.3.1". On a manual
       # (workflow_dispatch) run it's the branch name, so the APK is just named after
