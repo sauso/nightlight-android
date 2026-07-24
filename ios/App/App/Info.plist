@@ -47,5 +47,14 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- The server address is user-chosen at runtime and self-hosted installs are
+	     commonly plain-http on the LAN (e.g. http://192.168.1.50:4000), so a
+	     per-domain ATS exception can't be pre-declared. Mirrors the Android
+	     usesCleartextTraffic decision; the setup flow still prefers https first. -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

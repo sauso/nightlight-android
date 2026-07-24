@@ -1,0 +1,21 @@
+import UIKit
+import Capacitor
+
+/// Root bridge view controller. Chooses which server to load at launch — the iOS
+/// counterpart of Android's MainActivity reading the saved URL in onCreate:
+///   - a saved server  -> point the bridge at it (loads the remote web UI)
+///   - no saved server -> leave the descriptor on the bundled web assets, so the
+///     first-run setup page (public/index.html) loads instead.
+///
+/// `ServerConfigPlugin.restart()` rebuilds this controller so a newly saved choice
+/// takes effect. `errorPath` (error.html) comes from capacitor.config.json and covers
+/// the case where a saved server is unreachable at launch.
+class MainViewController: CAPBridgeViewController {
+    override func instanceDescriptor() -> InstanceDescriptor {
+        let descriptor = super.instanceDescriptor()
+        if let saved = ServerConfigStore.savedURL, let url = URL(string: saved) {
+            descriptor.serverURL = url
+        }
+        return descriptor
+    }
+}
