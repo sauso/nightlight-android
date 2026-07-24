@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import AVFoundation
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,7 +8,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Put the audio session in .playback up front (paired with the `audio`
+        // UIBackgroundMode) so the WebView's stream audio can continue with the screen
+        // off / app backgrounded. Doing it once at launch - rather than reconfiguring
+        // mid-stream - is deliberate: calling setActive on an already-playing session
+        // interrupts the WebView audio (which is what made switching to Background stop
+        // it). On/off vs. background is handled by the web app muting the audio element,
+        // so the native side only needs to keep the session category correct.
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         return true
     }
 

@@ -29,25 +29,19 @@ public class BackgroundAudioPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
     ]
 
-    // Called both when the first camera enters background mode and on every membership
-    // change; activating an already-active session is a harmless no-op, matching the
-    // Android "start while running just updates the notification" behavior.
+    // The audio session category is set to .playback once at launch (see AppDelegate),
+    // so keeping a stream audible in the background is really driven by the web app not
+    // muting the <audio> element in Background mode. The native side deliberately does
+    // NOT call setActive here: doing so on an already-playing session interrupts the
+    // WebView audio (that was the "switching to Background stops it" bug). start/stop
+    // just re-assert the category defensively and resolve, keeping the same JS contract
+    // as Android.
     @objc func start(_ call: CAPPluginCall) {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default, options: [])
-            try session.setActive(true)
-            call.resolve()
-        } catch {
-            call.reject("Could not activate the audio session: \(error.localizedDescription)")
-        }
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+        call.resolve()
     }
 
     @objc func stop(_ call: CAPPluginCall) {
-        // notifyOthersOnDeactivation lets other apps' audio (music, etc.) resume.
-        // A deactivation failure is non-fatal - resolve either way so the web side's
-        // state stays consistent.
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         call.resolve()
     }
 }
