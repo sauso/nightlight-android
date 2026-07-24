@@ -1,0 +1,66 @@
+name: Build sideload IPA (unsigned device build)
+
+# Manual trigger. Produces an UNSIGNED device (arm64) .ipa for sideloading onto a
+# real iPhone with a free Apple ID via Sideloadly/AltStore on Windows - no Apple
+# Developer account and no Mac needed. The sideload tool re-signs it with your Apple
+# ID at install time. Run this whenever you want a fresh build to (re-)sideload; free
+# provisioning expires the installed app after 7 days.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync web assets into the iOS project
+        run: npx cap sync ios
+
+      # Build a device (iphoneos/arm64) .app with all signing disabled. The sideload
+      # tool supplies signing later, so CI produces a raw unsigned binary.
+      - name: Build unsigned device app
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            build
+
+      # An .ipa is just a zip with the .app inside a top-level Payload/ folder.
+      - name: Package into an .ipa
+        run: |
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name "*.app" | head -1)
+          if [ -z "$APP" ]; then
+            echo "No .app produced - build output:"
+            find build/Build/Products -maxdepth 2 || true
+            exit 1
+          fi
+          echo "Packaging: $APP"
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qr nightlight-unsigned.ipa Payload
+          ls -la nightlight-unsigned.ipa
+
+      - name: Upload the IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightlight-unsigned-ipa
+          path: nightlight-unsigned.ipa
