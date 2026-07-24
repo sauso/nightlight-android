@@ -37,20 +37,31 @@ jobs:
         run: |
           echo "=== ios/App ==="
           ls -la ios/App || true
-          echo "=== .xcworkspace / .xcodeproj / Podfile found ==="
-          find ios -maxdepth 3 \( -name "*.xcworkspace" -o -name "*.xcodeproj" -o -name "Podfile" \) || true
+          echo "=== key files (workspace / project / Podfile / Package.swift) ==="
+          find ios -maxdepth 3 \( -name "*.xcworkspace" -o -name "*.xcodeproj" -o -name "Podfile" -o -name "Package.swift" \) || true
 
-      # The .xcworkspace is produced by `pod install`; run it explicitly in case
-      # cap add/sync didn't (or swallowed a failure), so any CocoaPods error is
-      # surfaced here rather than as a missing-workspace error at build time.
-      - name: Install CocoaPods dependencies
-        working-directory: ios/App
-        run: pod install
+      # Recent Capacitor iOS uses Swift Package Manager (no Podfile / no .xcworkspace)
+      # and is built straight from App.xcodeproj. Only run pod install if a Podfile
+      # was actually generated, so this works under either dependency manager.
+      - name: Install CocoaPods dependencies (only if a Podfile exists)
+        run: |
+          if [ -f ios/App/Podfile ]; then
+            echo "Podfile found - running pod install"
+            (cd ios/App && pod install)
+          else
+            echo "No Podfile - Swift Package Manager project, skipping pod install"
+          fi
 
       - name: Build for the iOS Simulator (no signing)
         run: |
+          if [ -d ios/App/App.xcworkspace ]; then
+            CONTAINER=(-workspace ios/App/App.xcworkspace)
+          else
+            CONTAINER=(-project ios/App/App.xcodeproj)
+          fi
+          echo "Building with: ${CONTAINER[*]}"
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            "${CONTAINER[@]}" \
             -scheme App \
             -sdk iphonesimulator \
             -configuration Debug \
