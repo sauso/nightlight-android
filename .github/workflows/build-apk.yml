@@ -63,6 +63,9 @@ jobs:
       - name: Build signed release APK
         run: cd android && ./gradlew assembleRelease --no-daemon
 
+      # On a tag, GITHUB_REF_NAME is like "v0.3.1" -> version "0.3.1". On a manual
+      # (workflow_dispatch) run it's the branch name, so the APK is just named after
+      # that for artifact download - no Release is published (see the gated step below).
       - name: Name the APK after the version
         id: apk
         run: |
@@ -71,8 +74,17 @@ jobs:
           echo "path=nightlight-${VERSION}.apk" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
+      # Always available (both tag and manual runs) - lets a manual run be download-tested
+      # from the Actions run page without publishing anything.
+      - name: Upload APK as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightlight-apk
+          path: ${{ steps.apk.outputs.path }}
+
       # Pull the matching section out of CHANGELOG.md for the release notes body.
       - name: Extract changelog section
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           awk -v v="$VERSION" '
@@ -84,7 +96,9 @@ jobs:
             echo "APK build for ${GITHUB_REF_NAME}." > release-notes.md
           fi
 
+      # Only real tags publish a Release - a manual run stops at the artifact above.
       - name: Publish GitHub Release with the APK attached
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ steps.apk.outputs.version }}
