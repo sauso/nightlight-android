@@ -47,6 +47,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Keeps the WKWebView's stream audio playing with the screen off / app
+	     backgrounded (see BackgroundAudioPlugin.swift) - the iOS mechanism in place of
+	     Android's foreground service. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<!-- The server address is user-chosen at runtime and self-hosted installs are
 	     commonly plain-http on the LAN (e.g. http://192.168.1.50:4000), so a
 	     per-domain ATS exception can't be pre-declared. Mirrors the Android
