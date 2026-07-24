@@ -33,6 +33,20 @@ jobs:
       - name: Sync web assets + native deps into the iOS project
         run: npx cap sync ios
 
+      - name: Show generated iOS project structure
+        run: |
+          echo "=== ios/App ==="
+          ls -la ios/App || true
+          echo "=== .xcworkspace / .xcodeproj / Podfile found ==="
+          find ios -maxdepth 3 \( -name "*.xcworkspace" -o -name "*.xcodeproj" -o -name "Podfile" \) || true
+
+      # The .xcworkspace is produced by `pod install`; run it explicitly in case
+      # cap add/sync didn't (or swallowed a failure), so any CocoaPods error is
+      # surfaced here rather than as a missing-workspace error at build time.
+      - name: Install CocoaPods dependencies
+        working-directory: ios/App
+        run: pod install
+
       - name: Build for the iOS Simulator (no signing)
         run: |
           xcodebuild \
